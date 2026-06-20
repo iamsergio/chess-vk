@@ -61,7 +61,6 @@ inline void printDeviceDetails(vk::PhysicalDevice device)
     printQueues(device);
 }
 
-#ifdef ENABLE_VALIDATION_LAYERS
 static VKAPI_ATTR vk::Bool32 VKAPI_CALL debugCallback(
     vk::DebugUtilsMessageSeverityFlagBitsEXT /*messageSeverity*/,
     vk::DebugUtilsMessageTypeFlagsEXT /*messageType*/,
@@ -82,4 +81,3 @@ inline vk::DebugUtilsMessengerCreateInfoEXT getDebugMessengerCreateInfo()
     createInfo.pfnUserCallback = debugCallback;
     return createInfo;
 }
-#endif

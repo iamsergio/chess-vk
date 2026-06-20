@@ -7,8 +7,7 @@
       "binaryDir": "${sourceDir}/build-${presetName}",
       "hidden": true,
       "cacheVariables": {
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "CHESSVK_VALIDATION_LAYERS": "ON"
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
     },
     {
@@ -29,7 +28,8 @@
         "dev"
       ],
       "cacheVariables": {
-        "CMAKE_CXX_FLAGS": "-DQT_FORCE_ASSERTS -fsanitize=address -fsanitize=undefined -fno-optimize-sibling-calls",
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_FLAGS": "-DQT_FORCE_ASSERTS -fsanitize=address -fsanitize=undefined -fno-optimize-sibling-calls -fno-var-tracking-assignments",
         "CMAKE_SHARED_LINKER_FLAGS": "-fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer",
         "CMAKE_EXE_LINKER_FLAGS": "-fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer"
       }
@@ -40,7 +40,8 @@
         "dev"
       ],
       "cacheVariables": {
-        "CMAKE_CXX_FLAGS": "-DQT_FORCE_ASSERTS -fsanitize=thread -fno-optimize-sibling-calls",
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_CXX_FLAGS": "-DQT_FORCE_ASSERTS -fsanitize=thread -fno-optimize-sibling-calls -fno-var-tracking-assignments",
         "CMAKE_SHARED_LINKER_FLAGS": "-fsanitize=thread -fno-omit-frame-pointer",
         "CMAKE_EXE_LINKER_FLAGS": "-fsanitize=thread -fno-omit-frame-pointer"
       }
@@ -50,8 +51,7 @@
       "inherits": "base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "CHESSVK_ENABLE_HARDENED": "ON",
-        "CHESSVK_VALIDATION_LAYERS": "OFF"
+        "CHESSVK_ENABLE_HARDENED": "ON"
       }
     }
   ]

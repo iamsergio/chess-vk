@@ -7,12 +7,12 @@ const std::vector<const char *> validationLayers = {
     "VK_LAYER_KHRONOS_validation"
 };
 
-VulkanContext::VulkanContext()
+VulkanContext::VulkanContext(bool validationEnabled)
+    : _validationEnabled(validationEnabled)
 {
     createInstance();
-#ifdef ENABLE_VALIDATION_LAYERS
-    setupDebugMessenger();
-#endif
+    if (_validationEnabled)
+        setupDebugMessenger();
     pickPhysicalDevice();
     findQueueFamilies();
     createLogicalDevice();
@@ -20,9 +20,8 @@ VulkanContext::VulkanContext()
 
 VulkanContext::~VulkanContext()
 {
-#ifdef ENABLE_VALIDATION_LAYERS
-    _instance->destroyDebugUtilsMessengerEXT(_debugMessenger, nullptr, _dldy);
-#endif
+    if (_validationEnabled)
+        _instance->destroyDebugUtilsMessengerEXT(_debugMessenger, nullptr, _dldy);
 }
 
 void VulkanContext::createInstance()
@@ -30,17 +29,19 @@ void VulkanContext::createInstance()
     vk::ApplicationInfo appInfo { "ChessVK", 1, "ChessVKEngine", 1, VK_API_VERSION_1_4 };
     vk::InstanceCreateInfo createInfo { {}, &appInfo };
 
-#ifdef ENABLE_VALIDATION_LAYERS
-    createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-    createInfo.ppEnabledLayerNames = validationLayers.data();
+    std::vector<const char *> extensions;
+    vk::DebugUtilsMessengerCreateInfoEXT debugCreateInfo;
+    if (_validationEnabled) {
+        createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+        createInfo.ppEnabledLayerNames = validationLayers.data();
 
-    const std::vector<const char *> extensions = { VK_EXT_DEBUG_UTILS_EXTENSION_NAME };
-    createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
-    createInfo.ppEnabledExtensionNames = extensions.data();
+        extensions = { VK_EXT_DEBUG_UTILS_EXTENSION_NAME };
+        createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
+        createInfo.ppEnabledExtensionNames = extensions.data();
 
-    auto debugCreateInfo = getDebugMessengerCreateInfo();
-    createInfo.pNext = &debugCreateInfo;
-#endif
+        debugCreateInfo = getDebugMessengerCreateInfo();
+        createInfo.pNext = &debugCreateInfo;
+    }
 
     _instance = VK_CHECK(vk::createInstanceUnique(createInfo), "Failed to create Vulkan instance");
     spdlog::info("Vulkan instance created successfully");
@@ -93,11 +94,9 @@ void VulkanContext::createLogicalDevice()
     _graphicsQueue = _device->getQueue(_graphicsQueueFamilyIndex, 0);
 }
 
-#ifdef ENABLE_VALIDATION_LAYERS
 void VulkanContext::setupDebugMessenger()
 {
     _dldy = vk::detail::DispatchLoaderDynamic(*_instance, vkGetInstanceProcAddr);
     auto createInfo = getDebugMessengerCreateInfo();
     _debugMessenger = VK_CHECK(_instance->createDebugUtilsMessengerEXT(createInfo, nullptr, _dldy), "Failed to create debug messenger");
 }
-#endif

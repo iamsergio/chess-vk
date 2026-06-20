@@ -9,7 +9,6 @@ find_package(Vulkan REQUIRED)
 find_package(spdlog REQUIRED)
 
 option(CHESSVK_ENABLE_HARDENED "Enable -fhardened equivalent for GCC" OFF)
-option(CHESSVK_VALIDATION_LAYERS "Enable Vulkan validation layers" OFF)
 
 if (CHESSVK_ENABLE_HARDENED)
     set(CMAKE_CXX_FLAGS
@@ -26,8 +25,5 @@ add_executable(chess-vk main.cpp
 )
 
 target_compile_definitions(chess-vk PRIVATE VULKAN_HPP_NO_EXCEPTIONS)
-if (CHESSVK_VALIDATION_LAYERS)
-    target_compile_definitions(chess-vk PRIVATE ENABLE_VALIDATION_LAYERS)
-endif()
 
 target_link_libraries(chess-vk PRIVATE SDL3::SDL3 Vulkan::Vulkan spdlog::spdlog)

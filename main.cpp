@@ -3,6 +3,8 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 
+#include <string_view>
+
 #if defined(__has_feature)
 #if __has_feature(thread_sanitizer)
 #define HAS_TSAN
@@ -24,6 +26,12 @@ extern "C" const char *__tsan_default_suppressions()
 
 int main(int argc, char *argv[])
 {
+    bool validationEnabled = false;
+    for (int i = 1; i < argc; ++i) {
+        if (std::string_view(argv[i]) == "--validation")
+            validationEnabled = true;
+    }
+
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         SDL_Log("SDL_Init failed: %s", SDL_GetError());
         return 1;
@@ -36,7 +44,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    VulkanContext context;
+    VulkanContext context(validationEnabled);
 
     bool running = true;
     SDL_Event event;
