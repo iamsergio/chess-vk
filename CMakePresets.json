@@ -7,7 +7,8 @@
       "binaryDir": "${sourceDir}/build-${presetName}",
       "hidden": true,
       "cacheVariables": {
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CHESSVK_VALIDATION_LAYERS": "ON"
       }
     },
     {
@@ -49,7 +50,8 @@
       "inherits": "base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "CHESSVK_ENABLE_HARDENED": "ON"
+        "CHESSVK_ENABLE_HARDENED": "ON",
+        "CHESSVK_VALIDATION_LAYERS": "OFF"
       }
     }
   ]
