@@ -3,6 +3,7 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 
+#include <spdlog/spdlog.h>
 #include <string_view>
 
 #if defined(__has_feature)
@@ -24,22 +25,35 @@ extern "C" const char *__tsan_default_suppressions()
 }
 #endif
 
-int main(int argc, char *argv[])
+bool contains_flag(int argc, char *argv[], std::string_view flag)
 {
-    bool validationEnabled = false;
     for (int i = 1; i < argc; ++i) {
-        if (std::string_view(argv[i]) == "--validation")
-            validationEnabled = true;
+        if (std::string_view(argv[i]) == flag)
+            return true;
     }
 
+    return false;
+}
+
+int main(int argc, char *argv[])
+{
+    if (contains_flag(argc, argv, "-h") || contains_flag(argc, argv, "--help")) {
+        spdlog::info("Usage: chess-vk [--validation] [-h|--help]");
+        spdlog::info("  --validation  Enable validation layers");
+        spdlog::info("  -h, --help    Show this help message");
+        return 0;
+    }
+
+    const bool validationEnabled = contains_flag(argc, argv, "--validation");
+
     if (!SDL_Init(SDL_INIT_VIDEO)) {
-        SDL_Log("SDL_Init failed: %s", SDL_GetError());
+        spdlog::error("SDL_Init failed: {}", SDL_GetError());
         return 1;
     }
 
     SDL_Window *window = SDL_CreateWindow("chess-vk", 800, 600, 0);
     if (!window) {
-        SDL_Log("SDL_CreateWindow failed: %s", SDL_GetError());
+        spdlog::error("SDL_CreateWindow failed: {}", SDL_GetError());
         SDL_Quit();
         return 1;
     }
