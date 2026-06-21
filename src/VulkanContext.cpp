@@ -3,10 +3,6 @@
 #include "errors.h"
 #include <spdlog/spdlog.h>
 
-const std::vector<const char *> validationLayers = {
-    "VK_LAYER_KHRONOS_validation"
-};
-
 VulkanContext::VulkanContext(bool validationEnabled)
     : _validationEnabled(validationEnabled)
 {
@@ -29,22 +25,40 @@ void VulkanContext::createInstance()
     vk::ApplicationInfo appInfo { "ChessVK", 1, "ChessVKEngine", 1, VK_API_VERSION_1_4 };
     vk::InstanceCreateInfo createInfo { {}, &appInfo };
 
-    std::vector<const char *> extensions;
+    const auto layersList = this->layers();
+    createInfo.enabledLayerCount = static_cast<uint32_t>(layersList.size());
+    createInfo.ppEnabledLayerNames = layersList.data();
+
+    const auto extensionsList = this->extensions();
+    createInfo.enabledExtensionCount = static_cast<uint32_t>(extensionsList.size());
+    createInfo.ppEnabledExtensionNames = extensionsList.data();
+
     vk::DebugUtilsMessengerCreateInfoEXT debugCreateInfo;
     if (_validationEnabled) {
-        createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-        createInfo.ppEnabledLayerNames = validationLayers.data();
-
-        extensions = { VK_EXT_DEBUG_UTILS_EXTENSION_NAME };
-        createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
-        createInfo.ppEnabledExtensionNames = extensions.data();
-
         debugCreateInfo = getDebugMessengerCreateInfo();
         createInfo.pNext = &debugCreateInfo;
     }
 
     _instance = VK_CHECK(vk::createInstanceUnique(createInfo), "Failed to create Vulkan instance");
     spdlog::info("Vulkan instance created successfully");
+}
+
+std::vector<const char *> VulkanContext::layers() const
+{
+    if (!_validationEnabled) {
+        return {};
+    }
+
+    return { "VK_LAYER_KHRONOS_validation" };
+}
+
+std::vector<const char *> VulkanContext::extensions() const
+{
+    if (!_validationEnabled) {
+        return {};
+    }
+
+    return { VK_EXT_DEBUG_UTILS_EXTENSION_NAME, VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME };
 }
 
 void VulkanContext::pickPhysicalDevice()

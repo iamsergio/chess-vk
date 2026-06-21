@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vulkan/vulkan.hpp>
+#include <vector>
 
 class VulkanContext
 {
@@ -29,6 +30,8 @@ public:
     }
 
 private:
+    std::vector<const char *> layers() const;
+    std::vector<const char *> extensions() const;
     void createInstance();
     void pickPhysicalDevice();
     void findQueueFamilies();
