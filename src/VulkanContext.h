@@ -1,6 +1,8 @@
 #pragma once
 
 #include <vulkan/vulkan.hpp>
+#include <vma/vk_mem_alloc.h>
+
 #include <vector>
 
 class VulkanContext
@@ -37,6 +39,7 @@ private:
     void findQueueFamilies();
     void createLogicalDevice();
     void setupDebugMessenger();
+    void setupVMA();
 
     bool _validationEnabled = false;
     vk::UniqueInstance _instance;
@@ -47,4 +50,5 @@ private:
     uint32_t _graphicsQueueFamilyIndex = 0;
     vk::DebugUtilsMessengerEXT _debugMessenger;
     vk::detail::DispatchLoaderDynamic _dldy;
+    VmaAllocator _allocator = VK_NULL_HANDLE;
 };

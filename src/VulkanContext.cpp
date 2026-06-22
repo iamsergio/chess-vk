@@ -1,6 +1,9 @@
+#define VMA_IMPLEMENTATION
+
 #include "VulkanContext.h"
 #include "debug.h"
 #include "errors.h"
+
 #include <spdlog/spdlog.h>
 
 VulkanContext::VulkanContext(bool validationEnabled)
@@ -113,4 +116,23 @@ void VulkanContext::setupDebugMessenger()
     _dldy = vk::detail::DispatchLoaderDynamic(*_instance, vkGetInstanceProcAddr);
     auto createInfo = getDebugMessengerCreateInfo();
     _debugMessenger = VK_CHECK(_instance->createDebugUtilsMessengerEXT(createInfo, nullptr, _dldy), "Failed to create debug messenger");
+}
+
+void VulkanContext::setupVMA()
+{
+    VmaVulkanFunctions vkFunctions {
+        .vkGetInstanceProcAddr = vkGetInstanceProcAddr,
+        .vkGetDeviceProcAddr = vkGetDeviceProcAddr,
+        .vkCreateImage = vkCreateImage
+    };
+
+    VmaAllocatorCreateInfo allocatorCI {
+        .flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT,
+        .physicalDevice = _physicalDevice,
+        .device = *_device,
+        .pVulkanFunctions = &vkFunctions,
+        .instance = _instance.get()
+    };
+
+    VK_CHECK2(vmaCreateAllocator(&allocatorCI, &_allocator), "Failed to create VMA allocator");
 }
