@@ -51,14 +51,14 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    SDL_Window *window = SDL_CreateWindow("chess-vk", 800, 600, 0);
+    SDL_Window *window = SDL_CreateWindow("chess-vk", 800, 600, SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE);
     if (!window) {
         spdlog::error("SDL_CreateWindow failed: {}", SDL_GetError());
         SDL_Quit();
         return 1;
     }
 
-    VulkanContext context(validationEnabled);
+    VulkanContext context(window, validationEnabled);
 
     bool running = true;
     SDL_Event event;

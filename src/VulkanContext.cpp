@@ -6,15 +6,21 @@
 
 #include <spdlog/spdlog.h>
 
-VulkanContext::VulkanContext(bool validationEnabled)
-    : _validationEnabled(validationEnabled)
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_vulkan.h>
+
+VulkanContext::VulkanContext(SDL_Window *window, bool validationEnabled)
+    : _window(window)
+    , _validationEnabled(validationEnabled)
 {
     createInstance();
     if (_validationEnabled)
         setupDebugMessenger();
     pickPhysicalDevice();
+    setupSDL();
     findQueueFamilies();
     createLogicalDevice();
+    setupVMA();
 }
 
 VulkanContext::~VulkanContext()
@@ -135,4 +141,20 @@ void VulkanContext::setupVMA()
     };
 
     VK_CHECK2(vmaCreateAllocator(&allocatorCI, &_allocator), "Failed to create VMA allocator");
+}
+
+void VulkanContext::setupSDL()
+{
+    if (!_window) {
+        throwError("SDL window is not initialized!");
+    }
+
+    VK_CHECK2(SDL_Vulkan_CreateSurface(_window, _instance.get(), nullptr, &_surface), "Failed to create Vulkan surface");
+
+    _surfaceCapabilities = VK_CHECK(_physicalDevice.getSurfaceCapabilitiesKHR(_surface), "Failed to query surface capabilities");
+}
+
+void VulkanContext::createSwapchain()
+{
+    // Implementation for creating the swapchain goes here
 }

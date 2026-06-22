@@ -5,10 +5,12 @@
 
 #include <vector>
 
+class SDL_Window;
+
 class VulkanContext
 {
 public:
-    VulkanContext(bool validationEnabled);
+    explicit VulkanContext(SDL_Window *window, bool validationEnabled);
     ~VulkanContext();
 
     vk::Instance getInstance() const
@@ -40,6 +42,8 @@ private:
     void createLogicalDevice();
     void setupDebugMessenger();
     void setupVMA();
+    void setupSDL();
+    void createSwapchain();
 
     bool _validationEnabled = false;
     vk::UniqueInstance _instance;
@@ -51,4 +55,7 @@ private:
     vk::DebugUtilsMessengerEXT _debugMessenger;
     vk::detail::DispatchLoaderDynamic _dldy;
     VmaAllocator _allocator = VK_NULL_HANDLE;
+    SDL_Window *const _window;
+    VkSurfaceKHR _surface = VK_NULL_HANDLE;
+    vk::SurfaceCapabilitiesKHR _surfaceCapabilities;
 };
