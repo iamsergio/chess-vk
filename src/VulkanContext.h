@@ -58,6 +58,8 @@ private:
     vk::detail::DispatchLoaderDynamic _dldy;
     VmaAllocator _allocator = VK_NULL_HANDLE;
     vk::UniqueSwapchainKHR _swapchain;
+    std::vector<vk::Image> _swapchainImages;
+    std::vector<vk::UniqueImageView> _swapchainImageViews;
     SDL_Window *const _window;
     vk::SurfaceCapabilitiesKHR _surfaceCapabilities;
 };

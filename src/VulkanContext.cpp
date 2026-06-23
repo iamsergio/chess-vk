@@ -223,4 +223,31 @@ void VulkanContext::createSwapchain()
     if (_validationEnabled) {
         setObjectName(*_device, reinterpret_cast<uint64_t>(static_cast<VkSwapchainKHR>(_swapchain.get())), vk::ObjectType::eSwapchainKHR, "swapchain", _dldy);
     }
+
+    uint32_t imageCount = 0;
+    if (_device->getSwapchainImagesKHR(_swapchain.get(), &imageCount, nullptr) != vk::Result::eSuccess) {
+        throwError("Failed to get swapchain image count");
+    }
+    _swapchainImages.resize(imageCount);
+    if (_device->getSwapchainImagesKHR(_swapchain.get(), &imageCount, _swapchainImages.data()) != vk::Result::eSuccess) {
+        throwError("Failed to get swapchain images");
+    }
+
+    _swapchainImageViews.clear();
+    _swapchainImageViews.reserve(_swapchainImages.size());
+    for (const auto image : _swapchainImages) {
+        vk::ImageViewCreateInfo imageViewCI {};
+        imageViewCI.image = image;
+        imageViewCI.viewType = vk::ImageViewType::e2D;
+        imageViewCI.format = imageFormat;
+        imageViewCI.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+        imageViewCI.subresourceRange.baseMipLevel = 0;
+        imageViewCI.subresourceRange.levelCount = 1;
+        imageViewCI.subresourceRange.baseArrayLayer = 0;
+        imageViewCI.subresourceRange.layerCount = 1;
+
+        _swapchainImageViews.push_back(VK_CHECK(_device->createImageViewUnique(imageViewCI), "Failed to create swapchain image view"));
+    }
+
+    spdlog::info("Swapchain created successfully with {} images", _swapchainImages.size());
 }
