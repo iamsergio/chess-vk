@@ -28,8 +28,19 @@ VulkanContext::VulkanContext(SDL_Window *window, bool validationEnabled)
 
 VulkanContext::~VulkanContext()
 {
+    _swapchain.reset();
+
+    if (_surface != VK_NULL_HANDLE) {
+        vk::detail::DispatchLoaderDynamic surfaceDldy(*_instance, vkGetInstanceProcAddr);
+        _instance->destroySurfaceKHR(_surface, nullptr, surfaceDldy);
+    }
     if (_validationEnabled)
         _instance->destroyDebugUtilsMessengerEXT(_debugMessenger, nullptr, _dldy);
+
+    if (_allocator) {
+        vmaDestroyAllocator(_allocator);
+        _allocator = nullptr;
+    }
 }
 
 void VulkanContext::createInstance()
@@ -174,7 +185,7 @@ void VulkanContext::setupSDL()
 
     SDL_CHECK(SDL_Vulkan_CreateSurface(_window, _instance.get(), nullptr, &_surface), "Failed to create Vulkan surface");
     if (_validationEnabled) {
-        setObjectName(*_device, reinterpret_cast<uint64_t>(static_cast<VkSurfaceKHR>(_surface)), vk::ObjectType::eSurfaceKHR, "surface", _dldy);
+        setObjectName(*_device, reinterpret_cast<uint64_t>(_surface), vk::ObjectType::eSurfaceKHR, "surface", _dldy);
     }
 
     _surfaceCapabilities = VK_CHECK(_physicalDevice.getSurfaceCapabilitiesKHR(_surface), "Failed to query surface capabilities");

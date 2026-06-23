@@ -50,6 +50,7 @@ private:
     vk::UniqueInstance _instance;
     vk::PhysicalDevice _physicalDevice;
     vk::UniqueDevice _device;
+    VkSurfaceKHR _surface = VK_NULL_HANDLE;
 
     vk::Queue _graphicsQueue;
     uint32_t _graphicsQueueFamilyIndex = 0;
@@ -58,6 +59,5 @@ private:
     VmaAllocator _allocator = VK_NULL_HANDLE;
     vk::UniqueSwapchainKHR _swapchain;
     SDL_Window *const _window;
-    VkSurfaceKHR _surface = VK_NULL_HANDLE;
     vk::SurfaceCapabilitiesKHR _surfaceCapabilities;
 };
