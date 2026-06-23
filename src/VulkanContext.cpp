@@ -1,5 +1,3 @@
-#define VMA_IMPLEMENTATION
-
 #include "VulkanContext.h"
 #include "debug.h"
 #include "errors.h"
@@ -249,5 +247,5 @@ void VulkanContext::createSwapchain()
         _swapchainImageViews.push_back(VK_CHECK(_device->createImageViewUnique(imageViewCI), "Failed to create swapchain image view"));
     }
 
-    spdlog::info("Swapchain created successfully with {} images", _swapchainImages.size());
+    spdlog::info("Swapchain created successfully with {} images.", _swapchainImages.size());
 }

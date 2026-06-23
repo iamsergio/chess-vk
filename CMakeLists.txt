@@ -22,6 +22,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib")
 
 add_executable(chess-vk main.cpp
     src/VulkanContext.cpp
+    src/vma.cpp
 )
 
 target_compile_definitions(chess-vk PRIVATE VULKAN_HPP_NO_EXCEPTIONS)
