@@ -9,6 +9,8 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_vulkan.h>
 
+#include <limits>
+
 VulkanContext::VulkanContext(SDL_Window *window, bool validationEnabled)
     : _window(window)
     , _validationEnabled(validationEnabled)
@@ -17,10 +19,11 @@ VulkanContext::VulkanContext(SDL_Window *window, bool validationEnabled)
     if (_validationEnabled)
         setupDebugMessenger();
     pickPhysicalDevice();
+    createLogicalDevice();
     setupSDL();
     findQueueFamilies();
-    createLogicalDevice();
     setupVMA();
+    createSwapchain();
 }
 
 VulkanContext::~VulkanContext()
@@ -63,11 +66,28 @@ std::vector<const char *> VulkanContext::layers() const
 
 std::vector<const char *> VulkanContext::extensions() const
 {
-    if (!_validationEnabled) {
-        return {};
+    uint32_t instanceExtensionsCount = 0;
+    const char *const *instanceExtensions = SDL_Vulkan_GetInstanceExtensions(&instanceExtensionsCount);
+    if (!instanceExtensions) {
+        throwError(std::string("Failed to get SDL Vulkan instance extensions: ") + SDL_GetError());
     }
 
-    return { VK_EXT_DEBUG_UTILS_EXTENSION_NAME, VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME };
+    std::vector<const char *> extensions(instanceExtensions, instanceExtensions + instanceExtensionsCount);
+    if (_validationEnabled) {
+        extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+        extensions.push_back(VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME);
+    }
+
+    for (const auto &ext : extensions) {
+        spdlog::info("Vulkan instance extension: {}", ext);
+    }
+
+    return extensions;
+}
+
+std::vector<const char *> VulkanContext::deviceExtensions() const
+{
+    return { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 }
 
 void VulkanContext::pickPhysicalDevice()
@@ -106,12 +126,15 @@ void VulkanContext::findQueueFamilies()
     }
 }
 
-
 void VulkanContext::createLogicalDevice()
 {
     float queuePriority = 1.0f;
     vk::DeviceQueueCreateInfo queueCreateInfo { {}, _graphicsQueueFamilyIndex, 1, &queuePriority };
     vk::DeviceCreateInfo createInfo { {}, 1, &queueCreateInfo };
+
+    auto deviceExtensions = this->deviceExtensions();
+    createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
+    createInfo.ppEnabledExtensionNames = deviceExtensions.data();
 
     _device = VK_CHECK(_physicalDevice.createDeviceUnique(createInfo), "Failed to create logical device");
     _graphicsQueue = _device->getQueue(_graphicsQueueFamilyIndex, 0);
@@ -149,12 +172,44 @@ void VulkanContext::setupSDL()
         throwError("SDL window is not initialized!");
     }
 
-    VK_CHECK2(SDL_Vulkan_CreateSurface(_window, _instance.get(), nullptr, &_surface), "Failed to create Vulkan surface");
+    SDL_CHECK(SDL_Vulkan_CreateSurface(_window, _instance.get(), nullptr, &_surface), "Failed to create Vulkan surface");
+    if (_validationEnabled) {
+        setObjectName(*_device, reinterpret_cast<uint64_t>(static_cast<VkSurfaceKHR>(_surface)), vk::ObjectType::eSurfaceKHR, "surface", _dldy);
+    }
 
     _surfaceCapabilities = VK_CHECK(_physicalDevice.getSurfaceCapabilitiesKHR(_surface), "Failed to query surface capabilities");
 }
 
 void VulkanContext::createSwapchain()
 {
-    // Implementation for creating the swapchain goes here
+    vk::Extent2D swapchainExtent = _surfaceCapabilities.currentExtent;
+    if (swapchainExtent.width == std::numeric_limits<uint32_t>::max()) {
+        int windowWidth = 0;
+        int windowHeight = 0;
+        SDL_GetWindowSize(_window, &windowWidth, &windowHeight);
+        swapchainExtent = vk::Extent2D {
+            static_cast<uint32_t>(windowWidth),
+            static_cast<uint32_t>(windowHeight)
+        };
+    }
+
+    const vk::Format imageFormat = vk::Format::eB8G8R8A8Srgb;
+
+    vk::SwapchainCreateInfoKHR swapchainCI {};
+    swapchainCI.surface = _surface;
+    swapchainCI.minImageCount = _surfaceCapabilities.minImageCount;
+    swapchainCI.imageFormat = imageFormat;
+    swapchainCI.imageColorSpace = vk::ColorSpaceKHR::eSrgbNonlinear;
+    swapchainCI.imageExtent = swapchainExtent;
+    swapchainCI.imageArrayLayers = 1;
+    swapchainCI.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
+    swapchainCI.preTransform = _surfaceCapabilities.currentTransform;
+    swapchainCI.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
+    swapchainCI.presentMode = vk::PresentModeKHR::eFifo;
+    swapchainCI.clipped = VK_TRUE;
+
+    _swapchain = VK_CHECK(_device->createSwapchainKHRUnique(swapchainCI), "Failed to create swapchain");
+    if (_validationEnabled) {
+        setObjectName(*_device, reinterpret_cast<uint64_t>(static_cast<VkSwapchainKHR>(_swapchain.get())), vk::ObjectType::eSwapchainKHR, "swapchain", _dldy);
+    }
 }

@@ -1,6 +1,11 @@
 #pragma once
 
+#include <SDL3/SDL.h>
+
 #include <spdlog/spdlog.h>
+
+#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.hpp>
 
 #include <stdexcept>
 #include <string>
@@ -25,3 +30,24 @@ inline void throwError(const std::string &message)
         if (_vk_result != 0)      \
             throwError(msg);      \
     }()
+
+#define SDL_CHECK(expr, msg)                                      \
+    [&]() {                                                       \
+        auto _sdl_result = (expr);                                \
+        if (!_sdl_result) {                                       \
+            throwError(std::string(msg) + ": " + SDL_GetError()); \
+        }                                                         \
+    }()
+
+inline void setObjectName(vk::Device device, uint64_t objectHandle, vk::ObjectType objectType, const char *name, const vk::detail::DispatchLoaderDynamic &dldy)
+{
+    if (!name)
+        return;
+
+    vk::DebugUtilsObjectNameInfoEXT nameInfo {};
+    nameInfo.objectType = objectType;
+    nameInfo.objectHandle = objectHandle;
+    nameInfo.pObjectName = name;
+
+    ( void )device.setDebugUtilsObjectNameEXT(nameInfo, dldy);
+}

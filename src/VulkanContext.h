@@ -36,6 +36,7 @@ public:
 private:
     std::vector<const char *> layers() const;
     std::vector<const char *> extensions() const;
+    std::vector<const char *> deviceExtensions() const;
     void createInstance();
     void pickPhysicalDevice();
     void findQueueFamilies();
@@ -55,6 +56,7 @@ private:
     vk::DebugUtilsMessengerEXT _debugMessenger;
     vk::detail::DispatchLoaderDynamic _dldy;
     VmaAllocator _allocator = VK_NULL_HANDLE;
+    vk::UniqueSwapchainKHR _swapchain;
     SDL_Window *const _window;
     VkSurfaceKHR _surface = VK_NULL_HANDLE;
     vk::SurfaceCapabilitiesKHR _surfaceCapabilities;

@@ -59,6 +59,7 @@
         "request": "launch",
         "program": "${command:cmake.launchTargetPath}",
         "args": [
+          "--validation"
         ],
         "cwd": "${command:cmake.buildDirectory}",
         "env": {}
@@ -69,6 +70,7 @@
         "request": "launch",
         "program": "${command:cmake.launchTargetPath}",
         "args": [
+          "--validation"
         ],
         "cwd": "${command:cmake.buildDirectory}",
         "MIMode": "gdb",
